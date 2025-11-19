@@ -1,0 +1,45 @@
+{
+  "users": [
+    {
+      "id": "ca7WfMNIOLmq78j5vOSyl",
+      "email": "demo@local",
+      "password": "$2a$08$Y6DeSJGQ0L.dZ0SqB8KJneHgNOPTwF3//3uY.OLByLKZJwkmNHaOm"
+    },
+    {
+      "id": "wNRRMYl14fz8-uAv-Bmcv",
+      "email": "psprashanth18@gmail.com",
+      "password": "$2a$08$TVHqywcMqWjzTcc1QLXHlOQ8eAfL7K7.FaC9SlETzdOv2fOKp.Y6y"
+    },
+    {
+      "id": "fdQvUu-hpaqNHhRIHnYOJ",
+      "email": "nitheesh123@gmail.com",
+      "password": "$2a$08$El0Q9gwij/wyt94icSOKveKRZKwzmAuyEzsJWuhXVdDV5hSYIs2Na"
+    }
+  ],
+  "categories": [
+    {
+      "_id": "XwbME7YLlmzSVJRe7qNr_",
+      "userId": "ca7WfMNIOLmq78j5vOSyl",
+      "name": "Food",
+      "color": "#ff6666"
+    }
+  ],
+  "budgets": [
+    {
+      "_id": "U5EYA629YPhrTALEoP5qF",
+      "userId": "ca7WfMNIOLmq78j5vOSyl",
+      "categoryId": "XwbME7YLlmzSVJRe7qNr_",
+      "month": "2025-11",
+      "limit": 1000
+    }
+  ],
+  "expenses": [
+    {
+      "_id": "OSAzQhKxJRD80bFtKW20r",
+      "userId": "ca7WfMNIOLmq78j5vOSyl",
+      "categoryId": "XwbME7YLlmzSVJRe7qNr_",
+      "amount": 1200,
+      "date": "2025-11-05"
+    }
+  ]
+}

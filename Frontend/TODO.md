@@ -1,0 +1,1 @@
+- [x] Update AddExpense.js to display "Expense saved successfully!" on successful save instead of budget-related messages.
