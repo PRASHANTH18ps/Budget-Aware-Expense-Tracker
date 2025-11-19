@@ -27,8 +27,7 @@ router.post('/', auth, async (req, res) => {
     await expense.save();
 
     // Check budget for the category
-    const monthStr = `${new Date(date).getFullYear()}-${String(new Date(date).getMonth() + 1).padStart(2, '0')}`;
-    const budget = await Budget.findOne({ userId, categoryId, month: monthStr });
+    const budget = await Budget.findOne({ userId, categoryId, month: new Date(date).getMonth() + 1, year: new Date(date).getFullYear() });
     let withinBudget = true;
     if (budget) {
       const totalExpenses = await Expense.aggregate([
