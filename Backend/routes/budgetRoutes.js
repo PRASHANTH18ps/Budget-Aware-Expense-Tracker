@@ -42,7 +42,7 @@ router.get("/:month", auth, async (req, res) => {
 // Delete budget
 router.delete("/:id", auth, async (req, res) => {
   try {
-    await Budget.deleteOne({ _id: req.params.id, userId: req.user._id });
+    await Budget.deleteOne({ _id: req.params.id, userId: req.user.id });
     res.json({ message: "Deleted" });
   } catch (err) {
     console.error("Budget delete error:", err.message);
