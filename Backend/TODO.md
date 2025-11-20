@@ -1,3 +1,0 @@
-- [ ] Fix budget lookup in expenseRoutes.js: Use correct month string format and 'limit' field
-- [ ] Swap alert messages in AddExpense.js for correct within/over budget display
-- [ ] Run the application to test changes
