@@ -1,4 +1,4 @@
-export const API = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+export const API = process.env.REACT_APP_API_URL || "https://budget-aware-expense-tracker-backend.onrender.com";
 
 export const authHeader = () => {
   const token = localStorage.getItem("token");
