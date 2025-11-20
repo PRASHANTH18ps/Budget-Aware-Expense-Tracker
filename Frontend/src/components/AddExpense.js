@@ -24,9 +24,9 @@ export default function AddExpense({ onSaved }) {
       const res = await axios.post(`${API}/expenses`, { categoryId, amount: Number(amount), date }, authHeader());
       const data = res.data;
       if (data.withinBudget) {
-        alert("saved");
+        alert("saved--within Budget");
       } else {
-        alert("saved");
+        alert("saved--Over Budget");
       }
       setAmount("");
       if (onSaved) onSaved();
