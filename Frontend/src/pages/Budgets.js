@@ -6,6 +6,7 @@ export default function Budgets() {
   const [month, setMonth] = useState(new Date().toISOString().slice(0,7));
   const [categories, setCategories] = useState([]);
   const [budgets, setBudgets] = useState({}); // catId -> limit
+  const [saveStatus, setSaveStatus] = useState({}); // catId -> "saved" or ""
 
   const load = async () => {
     try {
@@ -25,7 +26,11 @@ export default function Budgets() {
   const saveBudget = async (categoryId, limit) => {
     try {
       await axios.post(`${API}/budgets`, { categoryId, month, limit: Number(limit) }, authHeader());
+      setSaveStatus(prev => ({ ...prev, [categoryId]: "saved" }));
       load();
+      setTimeout(() => {
+        setSaveStatus(prev => ({ ...prev, [categoryId]: "" }));
+      }, 2000);
     } catch (err) { alert(err.response?.data?.message || "Error"); }
   };
 
@@ -72,6 +77,7 @@ export default function Budgets() {
                   >
                     Save
                   </button>
+                  {saveStatus[c._id] && <span style={{ color: "green", marginLeft: 8 }}>{saveStatus[c._id]}</span>}
                 </div>
               ))}
             </div>
