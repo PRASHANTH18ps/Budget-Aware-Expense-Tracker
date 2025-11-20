@@ -1,86 +1,110 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { API, authHeader } from "../api";
 
 export default function Reports() {
   const [month, setMonth] = useState(new Date().toISOString().slice(0,7));
-  const [report, setReport] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [budgets, setBudgets] = useState({});
+  const [spentMap, setSpentMap] = useState({});
+  const [view, setView] = useState('table');
 
   const load = async () => {
-    setLoading(true);
     try {
-      const res = await axios.get(`${API}/expenses/report/${month}`, authHeader());
-      setReport(res.data.report || []);
+      const [catRes, budRes, expRes] = await Promise.all([
+        axios.get(`${API}/categories`, authHeader()),
+        axios.get(`${API}/budgets/${month}`, authHeader()).catch(()=>({data:[] })),
+        axios.get(`${API}/expenses`, authHeader()).catch(()=>({data:[] }))
+      ]);
+      setCategories(catRes.data);
+
+      // budgets (map by category)
+      const budMap = {};
+      (budRes.data || []).forEach(b => { if (b.categoryId) budMap[b.categoryId._id] = b.limit; });
+      setBudgets(budMap);
+
+      // compute spent in selected month
+      const map = {};
+      (expRes.data || []).forEach(e => {
+        const eMonth = new Date(e.date).toISOString().slice(0,7);
+        if (eMonth === month) {
+          map[e.categoryId._id] = (map[e.categoryId._id] || 0) + e.amount;
+        }
+      });
+      setSpentMap(map);
     } catch (err) {
       console.error(err);
-      setReport([]);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(()=>{ load(); }, [month]);
 
+  // Compute report from loaded data
+  const report = categories.map(c => {
+    const spent = spentMap[c._id] || 0;
+    const limit = budgets[c._id] || 0;
+    const remaining = limit - spent;
+    return {
+      categoryId: c._id,
+      name: c.name,
+      color: c.color,
+      spent,
+      limit,
+      remaining
+    };
+  });
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: 20 }}>
-      <div style={{ maxWidth: 800, width: "100%" }}>
-        <h2 style={{ textAlign: "center", marginBottom: 20 }}>Monthly Expense Reports</h2>
+    <div className="centered-container">
+      <div className="dashboard-card">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <div>
+            <h2 style={{ margin: 0 }}>Reports</h2>
+          </div>
 
-        <div style={{ border: "1px solid #ddd", padding: 20, borderRadius: 8, backgroundColor: "#f9f9f9", marginBottom: 20 }}>
-          <form onSubmit={(e) => { e.preventDefault(); load(); }} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <label htmlFor="month" style={{ marginBottom: 4, fontWeight: "bold" }}>Select Month</label>
-              <input
-                id="month"
-                type="month"
-                value={month}
-                onChange={(e) => setMonth(e.target.value)}
-                style={{ padding: 8, border: "1px solid #ccc", borderRadius: 4 }}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{ padding: 10, border: "none", borderRadius: 4, cursor: "pointer", fontSize: 16 }}
-            >
-              {loading ? "Loading..." : "Load Report"}
-            </button>
-          </form>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <label style={{ fontSize: 14 }}>Month</label>
+            <input type="month" value={month} onChange={e=>setMonth(e.target.value)} />
+          </div>
         </div>
 
-        <div style={{ marginTop: 20 }}>
-          <h3 style={{ textAlign: "center", marginBottom: 12 }}>Expense Reports</h3>
-          {loading ? (
-            <p style={{ textAlign: "center" }}>Loading report...</p>
-          ) : report.length === 0 ? (
-            <p style={{ textAlign: "center", color: "#666" }}>No data available for the selected month.</p>
-          ) : (
-            <div style={{ border: "1px solid #ddd", borderRadius: 8, overflow: "hidden" }}>
-              {report.map((r) => (
-                <div key={r.categoryId} style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderBottom: "1px solid #eee", backgroundColor: "white" }}>
-                  <div style={{ width: 20, height: 20, background: r.color, borderRadius: 4, border: "1px solid #ccc" }} />
-                  <div style={{ flex: 1, fontWeight: "bold" }}>{r.name}</div>
-                  <div style={{ width: 100, textAlign: "right" }}>₹{r.spent.toFixed(2)}</div>
-                  <div style={{ width: 100, textAlign: "right" }}>
-                    {r.limit === 0 ? "No Budget" : `₹${r.limit.toFixed(2)}`}
-                  </div>
-                  <div
-                    style={{
-                      width: 100,
-                      textAlign: "right",
-                      color: r.remaining < 0 ? "red" : r.remaining === 0 ? "orange" : "green",
-                      fontWeight: r.remaining < 0 ? "bold" : "normal"
-                    }}
-                  >
-                    ₹{r.remaining.toFixed(2)}
-                  </div>
-                </div>
+        <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center' }}>
+          <button onClick={() => setView('table')} style={{ marginRight: 10, backgroundColor: view === 'table' ? '#060101ff' : 'white' }}>Table View</button>
+        </div>
+
+        {view === 'table' ? (
+          <table style={{ width:"100%", marginTop:12, borderCollapse:"collapse" }}>
+            <thead>
+              <tr style={{ textAlign:"left", borderBottom: "1px solid #ddd" }}>
+                <th>Category</th><th>Spent</th><th>Budget</th><th>Remaining</th>
+              </tr>
+            </thead>
+            <tbody>
+              {report.map(r => (
+                <tr key={r.categoryId} style={{ borderBottom:"1px solid #f0f0f0" }}>
+                  <td>{r.name}</td>
+                  <td>₹{r.spent}</td>
+                  <td>₹{r.limit}</td>
+                  <td style={{ color: r.remaining < 0 ? "red" : "inherit" }}>₹{r.remaining}</td>
+                </tr>
               ))}
-            </div>
-          )}
-        </div>
+            </tbody>
+          </table>
+        ) : (
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={report}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip formatter={(value) => `₹${value}`} />
+              <Legend />
+              <Bar dataKey="spent" fill="#8884d8" name="Spent" />
+              <Bar dataKey="limit" fill="#82ca9d" name="Budget" />
+              <Bar dataKey="remaining" fill={report.some(r => r.remaining < 0) ? "#ff0000" : "#ffc658"} name="Remaining" />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );
